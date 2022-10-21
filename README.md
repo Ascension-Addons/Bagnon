@@ -1,3 +1,3 @@
-# Addon Name
+# Bagnon
 
-This is the repository for <Addon Name>. Modified for Ascension.gg. 
+This is the repository for Bagnon. Modified for Ascension.gg. 
