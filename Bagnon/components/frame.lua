@@ -21,12 +21,12 @@ function Frame:New(frameID)
 	f:SetMovable(true)
 	f:EnableMouse(true)
 
-	f:SetBackdrop{
-	  bgFile = [[Interface\ChatFrame\ChatFrameBackground]],
-	  edgeFile = [[Interface\Tooltips\UI-Tooltip-Border]],
-	  edgeSize = 16,
-	  tile = true, tileSize = 16,
-	  insets = {left = 4, right = 4, top = 4, bottom = 4}
+	f:SetBackdrop {
+		bgFile = [[Interface\ChatFrame\ChatFrameBackground]],
+		edgeFile = [[Interface\Tooltips\UI-Tooltip-Border]],
+		edgeSize = 16,
+		tile = true, tileSize = 16,
+		insets = { left = 4, right = 4, top = 4, bottom = 4 }
 	}
 
 	f:SetScript('OnShow', f.OnShow)
@@ -39,7 +39,6 @@ function Frame:New(frameID)
 
 	return f
 end
-
 
 --[[
 	Frame Messages
@@ -68,6 +67,7 @@ function Frame:UpdateEvents()
 		self:RegisterMessage('MONEY_FRAME_ENABLE_UPDATE')
 		self:RegisterMessage('DATABROKER_FRAME_ENABLE_UPDATE')
 		self:RegisterMessage('SEARCH_TOGGLE_ENABLE_UPDATE')
+		self:RegisterMessage('SORT_BTN_ENABLE_UPDATE')
 		self:RegisterMessage('OPTIONS_TOGGLE_ENABLE_UPDATE')
 	end
 end
@@ -175,12 +175,17 @@ function Frame:SEARCH_TOGGLE_ENABLE_UPDATE(msg, frameID, enable)
 	end
 end
 
-function Frame:OPTIONS_TOGGLE_ENABLE_UPDATE(msg, frameID, enable)
+function Frame:SORT_BTN_ENABLE_UPDATE(msg, frameID, enable)
 	if self:GetFrameID() == frameID then
 		self:Layout()
 	end
 end
 
+function Frame:OPTIONS_TOGGLE_ENABLE_UPDATE(msg, frameID, enable)
+	if self:GetFrameID() == frameID then
+		self:Layout()
+	end
+end
 
 --[[
 	Frame Events
@@ -218,7 +223,6 @@ function Frame:IsBankFrame()
 	return self:GetFrameID() == 'bank'
 end
 
-
 --[[
 	Update Methods
 --]]
@@ -243,7 +247,6 @@ function Frame:UpdateLook()
 	self:Layout()
 end
 
-
 --[[
 	Frame Scale
 --]]
@@ -258,7 +261,7 @@ function Frame:UpdateScale()
 		local ratio = newScale / oldScale
 
 		self:SetScale(newScale)
-		self:GetSettings():SetPosition(point, x/ratio, y/ratio)
+		self:GetSettings():SetPosition(point, x / ratio, y / ratio)
 	end
 end
 
@@ -271,7 +274,6 @@ function Frame:Rescale()
 	self:SetScale(self:GetFrameScale())
 end
 
-
 --[[
 	Frame Opacity
 --]]
@@ -283,7 +285,6 @@ end
 function Frame:GetFrameOpacity()
 	return self:GetSettings():GetOpacity()
 end
-
 
 --[[
 	Frame Position
@@ -305,24 +306,25 @@ function Frame:GetRelativePosition()
 	local s = self:GetScale()
 	if not (x and y) then return end
 
-	w = w/s h = h/s
+	w = w / s
+	h = h / s
 
 	local dx, dy
-	local hHalf = (x > w/2) and 'RIGHT' or 'LEFT'
+	local hHalf = (x > w / 2) and 'RIGHT' or 'LEFT'
 	if hHalf == 'RIGHT' then
 		dx = self:GetRight() - w
 	else
 		dx = self:GetLeft()
 	end
 
-	local vHalf = (y > h/2) and 'TOP' or 'BOTTOM'
+	local vHalf = (y > h / 2) and 'TOP' or 'BOTTOM'
 	if vHalf == 'TOP' then
 		dy = self:GetTop() - h
 	else
 		dy = self:GetBottom()
 	end
 
-	return vHalf..hHalf, dx, dy
+	return vHalf .. hHalf, dx, dy
 end
 
 function Frame:UpdatePosition()
@@ -333,7 +335,6 @@ end
 function Frame:GetFramePosition()
 	return self:GetSettings():GetPosition()
 end
-
 
 --[[
 	Frame Color
@@ -357,7 +358,6 @@ function Frame:GetFrameBackdropBorderColor()
 	return self:GetSettings():GetBorderColor()
 end
 
-
 --[[
 	Frame Visibility
 --]]
@@ -377,7 +377,6 @@ end
 function Frame:HideFrame()
 	self:GetSettings():Hide()
 end
-
 
 --[[
 	Frame Layer/Strata
@@ -412,7 +411,6 @@ function Frame:GetFrameLayer()
 	return self:GetSettings():GetLayer()
 end
 
-
 --[[
 	Layout Methods
 --]]
@@ -435,6 +433,10 @@ function Frame:Layout()
 	width = width + w
 
 	local w, h = self:PlaceOptionsToggle()
+	width = width + w + 24 --append spacing between close button and this
+	height = height + 20
+
+	local w, h = self:PlaceSortBtn()
 	width = width + w + 24 --append spacing between close button and this
 	height = height + 20
 
@@ -468,8 +470,7 @@ function Frame:Layout()
 	self:SavePosition()
 end
 
-
---[[ Menu Button Placement ]]--
+--[[ Menu Button Placement ]] --
 
 function Frame:PlaceMenuButtons()
 	local menuButtons = self.menuButtons or {}
@@ -501,7 +502,7 @@ function Frame:PlaceMenuButtons()
 		if i == 1 then
 			button:SetPoint('TOPLEFT', self, 'TOPLEFT', 8, -8)
 		else
-			button:SetPoint('TOPLEFT', menuButtons[i-1], 'TOPRIGHT', 4, 0)
+			button:SetPoint('TOPLEFT', menuButtons[i - 1], 'TOPRIGHT', 4, 0)
 		end
 		button:Show()
 	end
@@ -520,13 +521,12 @@ function Frame:GetMenuButtons()
 	return self.menuButtons
 end
 
-
 --[[
 	Frame Components
 --]]
 
 
---[[ close button ]]--
+--[[ close button ]] --
 
 local function CloseButton_OnClick(self)
 	self:GetParent():GetSettings():Hide(true) --force hide the frame
@@ -552,8 +552,7 @@ function Frame:PlaceCloseButton()
 	return 20, 20 --make the same size as the other menu buttons
 end
 
-
---[[ search frame ]]--
+--[[ search frame ]] --
 
 function Frame:CreateSearchFrame()
 	local f = Bagnon.SearchFrame:New(self:GetFrameID(), self)
@@ -576,7 +575,9 @@ function Frame:PlaceSearchFrame()
 		frame:SetPoint('TOPLEFT', self, 'TOPLEFT', 8, -8)
 	end
 
-	if self:HasOptionsToggle() then
+	if self:HasSortBtn() then
+		frame:SetPoint('RIGHT', self:GetSortBtn(), 'LEFT', -2, 0)
+	elseif self:HasOptionsToggle() then
 		frame:SetPoint('RIGHT', self:GetOptionsToggle(), 'LEFT', -2, 0)
 	else
 		frame:SetPoint('RIGHT', self:GetCloseButton(), 'LEFT', -2, 0)
@@ -587,11 +588,10 @@ function Frame:PlaceSearchFrame()
 	return frame:GetWidth(), frame:GetHeight()
 end
 
-
---[[ search toggle ]]--
+--[[ search toggle ]] --
 
 function Frame:CreateSearchToggle()
-	local toggle =  Bagnon.SearchToggle:New(self:GetFrameID(), self)
+	local toggle = Bagnon.SearchToggle:New(self:GetFrameID(), self)
 	self.searchToggle = toggle
 	return toggle
 end
@@ -604,11 +604,10 @@ function Frame:HasSearchToggle()
 	return self:GetSettings():HasSearchToggle()
 end
 
-
---[[ bag frame ]]--
+--[[ bag frame ]] --
 
 function Frame:CreateBagFrame()
-	local f =  Bagnon.BagFrame:New(self:GetFrameID(), self)
+	local f = Bagnon.BagFrame:New(self:GetFrameID(), self)
 	self.bagFrame = f
 	return f
 end
@@ -655,8 +654,7 @@ function Frame:PlaceBagFrame()
 	return 0, 0
 end
 
-
---[[ bag toggle ]]--
+--[[ bag toggle ]] --
 
 function Frame:CreateBagToggle()
 	local toggle = Bagnon.BagToggle:New(self:GetFrameID(), self)
@@ -673,8 +671,7 @@ function Frame:HasBagToggle()
 	return true
 end
 
-
---[[ title frame ]]--
+--[[ title frame ]] --
 
 function Frame:CreateTitleFrame()
 	local f = Bagnon.TitleFrame:New(self:GetFrameID(), self)
@@ -702,18 +699,20 @@ function Frame:PlaceTitleFrame()
 		h = 20
 	end
 
-	if self:HasOptionsToggle() then
-		frame:SetPoint('RIGHT', self:GetOptionsToggle(), 'LEFT', -4, 0)
+	if self:HasSortBtn() then
+		frame:SetPoint('RIGHT', self:GetSortBtn(), 'LEFT', -2, 0)
+	elseif self:HasOptionsToggle() then
+		frame:SetPoint('RIGHT', self:GetOptionsToggle(), 'LEFT', -2, 0)
 	else
-		frame:SetPoint('RIGHT', self:GetCloseButton(), 'LEFT', -4, 0)
+		frame:SetPoint('RIGHT', self:GetCloseButton(), 'LEFT', -2, 0)
 	end
+
 	frame:SetHeight(20)
 
 	return w, h
 end
 
-
---[[ item frame ]]--
+--[[ item frame ]] --
 
 function Frame:CreateItemFrame()
 	local f = Bagnon.ItemFrame:New(self:GetFrameID(), self)
@@ -744,8 +743,7 @@ function Frame:PlaceItemFrame()
 	return frame:GetWidth() - 2, frame:GetHeight()
 end
 
-
---[[ player selector ]]--
+--[[ player selector ]] --
 
 function Frame:GetPlayerSelector()
 	return self.playerSelector
@@ -761,8 +759,7 @@ function Frame:HasPlayerSelector()
 	return BagnonDB and true or false
 end
 
-
---[[ money frame ]]--
+--[[ money frame ]] --
 
 function Frame:GetMoneyFrame()
 	return self.moneyFrame
@@ -794,9 +791,7 @@ function Frame:PlaceMoneyFrame()
 	return 0, 0
 end
 
-
-
---[[ libdatabroker display ]]--
+--[[ libdatabroker display ]] --
 
 function Frame:GetBrokerDisplay()
 	return self.brokerDisplay
@@ -835,8 +830,41 @@ function Frame:PlaceBrokerDisplayFrame()
 	return 0, 0
 end
 
+--[[ sort bags ]] --
 
---[[ options toggle ]]--
+function Frame:GetSortBtn()
+	return self.sortBtn
+end
+
+function Frame:CreateSortBtn()
+	local f = Bagnon.SortBtn:New(self:GetFrameID(), self)
+	self.sortBtn = f
+	return f
+end
+
+function Frame:PlaceSortBtn()
+	if self:HasSortBtn() then
+		local toggle = self:GetSortBtn() or self:CreateSortBtn()
+		toggle:ClearAllPoints()
+		toggle:SetPoint('TOPRIGHT', self, 'TOPRIGHT', -58, -8)
+		toggle:Show()
+
+		return toggle:GetWidth(), toggle:GetHeight()
+	end
+
+	local toggle = self:GetSortBtn()
+	if toggle then
+		toggle:Hide()
+	end
+	return 0, 0
+end
+
+function Frame:HasSortBtn()
+	local name, title, notes, enabled = GetAddOnInfo('Bagnon_Config')
+	return enabled and self:GetSettings():HasSortBtn()
+end
+
+--[[ options toggle ]] --
 
 function Frame:GetOptionsToggle()
 	return self.optionsToggle
@@ -869,7 +897,6 @@ function Frame:HasOptionsToggle()
 	local name, title, notes, enabled = GetAddOnInfo('Bagnon_Config')
 	return enabled and self:GetSettings():HasOptionsToggle()
 end
-
 
 --[[
 	Frame Settings Access

@@ -9,11 +9,12 @@
 	<Script file="components\itemFrame.lua"/>
 	<Script file="components\moneyFrame.lua"/>
 	<Script file="components\optionsToggle.lua"/>
+	<Script file="components\sortBtn.lua"/>
 	<Script file="components\playerSelector.lua"/>
 	<Script file="components\savedSettings.lua"/>
 	<Script file="components\searchFrame.lua"/>
 	<Script file="components\searchToggle.lua"/>
 	<Script file="components\settings.lua"/>
 	<Script file="components\titleFrame.lua"/>
-    <Script file="components\savedFrameSettings.lua"/>
+  <Script file="components\savedFrameSettings.lua"/>
 </Ui>

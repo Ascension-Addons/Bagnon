@@ -29,7 +29,6 @@ function FrameOptions:ShowFrame(frameID)
 	InterfaceOptionsFrame_OpenToCategory(self)
 end
 
-
 --[[
 	Messages
 --]]
@@ -53,6 +52,7 @@ function FrameOptions:UpdateMessages()
 	self:RegisterMessage('DATABROKER_FRAME_ENABLE_UPDATE')
 	self:RegisterMessage('SEARCH_TOGGLE_ENABLE_UPDATE')
 	self:RegisterMessage('SLOT_ORDER_UPDATE')
+	self:RegisterMessage('SORT_BTN_ENABLE_UPDATE')
 	self:RegisterMessage('OPTIONS_TOGGLE_ENABLE_UPDATE')
 end
 
@@ -134,12 +134,17 @@ function FrameOptions:ITEM_FRAME_BAG_BREAK_UPDATE(msg, frameID, enable)
 	end
 end
 
+function FrameOptions:SORT_BTN_ENABLE_UPDATE(msg, frameID, enable)
+	if self:GetFrameID() == frameID then
+		self:GetSortBtnCheckBox():UpdateChecked()
+	end
+end
+
 function FrameOptions:OPTIONS_TOGGLE_ENABLE_UPDATE(msg, frameID, enable)
 	if self:GetFrameID() == frameID then
 		self:GetToggleOptionsCheckbox():UpdateChecked()
 	end
 end
-
 
 --[[
 	Frame Events
@@ -154,20 +159,19 @@ function FrameOptions:OnHide()
 	self:UpdateMessages()
 end
 
-
 --[[
 	Components
 --]]
 
 function FrameOptions:AddWidgets()
-	--[[ Dropdowns ]]--
+	--[[ Dropdowns ]] --
 
 	--add frame selector
 	local frameSelector = self:CreateFrameSelector()
 	frameSelector:SetPoint('TOPLEFT', self, 'TOPLEFT', -4, -64)
 
 
-	--[[ Checkboxes ]]--
+	--[[ Checkboxes ]] --
 
 	local toggleBagFrame = self:CreateToggleBagFrameCheckbox()
 	toggleBagFrame:SetPoint('TOPLEFT', frameSelector, 'BOTTOMLEFT', 16, -4)
@@ -180,18 +184,21 @@ function FrameOptions:AddWidgets()
 
 	local toggleSearchFrame = self:CreateToggleSearchFrameCheckbox()
 	toggleSearchFrame:SetPoint('TOPLEFT', toggleDBOFrame, 'BOTTOMLEFT', 0, -CHECK_BUTTON_SPACING)
-	
+
+	local sortBtnFrame = self:CreateBtnSortCheckbox()
+	sortBtnFrame:SetPoint('TOPLEFT', toggleSearchFrame, 'BOTTOMLEFT', 0, -CHECK_BUTTON_SPACING)
+
 	local toggleOptionsFrame = self:CreateToggleOptionsCheckbox()
-	toggleOptionsFrame:SetPoint('TOPLEFT', toggleSearchFrame, 'BOTTOMLEFT', 0, -CHECK_BUTTON_SPACING)
+	toggleOptionsFrame:SetPoint('TOPLEFT', sortBtnFrame, 'BOTTOMLEFT', 0, -CHECK_BUTTON_SPACING)
 
 	local reverseSlotOrdering = self:CreateReverseSlotOrderCheckbox()
 	reverseSlotOrdering:SetPoint('TOPLEFT', toggleOptionsFrame, 'BOTTOMLEFT', 0, -CHECK_BUTTON_SPACING)
-	
+
 	local bagBreak = self:CreateBagBreakCheckbox()
 	bagBreak:SetPoint('TOPLEFT', reverseSlotOrdering, 'BOTTOMLEFT', 0, -CHECK_BUTTON_SPACING)
 
 
-	--[[ Color Selectors ]]--
+	--[[ Color Selectors ]] --
 
 	--add color selector
 	local frameColor = self:CreateColorSelector()
@@ -202,7 +209,7 @@ function FrameOptions:AddWidgets()
 	frameBorderColor:SetPoint('TOPLEFT', frameColor, 'BOTTOMLEFT', 0, -8)
 
 
-	--[[ Sliders ]]--
+	--[[ Sliders ]] --
 
 	--add opacity slider
 	local opacity = self:CreateOpacitySlider()
@@ -249,17 +256,17 @@ function FrameOptions:UpdateWidgets()
 	self:GetToggleMoneyFrameCheckbox():UpdateChecked()
 	self:GetToggleDBOFrameCheckbox():UpdateChecked()
 	self:GetToggleSearchFrameCheckbox():UpdateChecked()
+	self:GetSortBtnCheckBox():UpdateChecked()
 	self:GetToggleOptionsCheckbox():UpdateChecked()
-	
+
 	self:GetReverseSlotOrderCheckbox():UpdateChecked()
 	self:GetReverseSlotOrderCheckbox():SetDisabled(self:GetFrameID() == 'guildbank')
-	
+
 	self:GetBagBreakCheckbox():UpdateChecked()
 	self:GetBagBreakCheckbox():SetDisabled(self:GetFrameID() == 'keys' or self:GetFrameID() == 'guildbank')
 end
 
-
---[[ Dropdowns ]]--
+--[[ Dropdowns ]] --
 
 --frame selector
 function FrameOptions:CreateFrameSelector()
@@ -270,7 +277,7 @@ function FrameOptions:CreateFrameSelector()
 		self:AddItem(L.Inventory, 'inventory')
 		self:AddItem(L.Bank, 'bank')
 		self:AddItem(L.KeyRing, 'keys')
-		
+
 		if IsAddOnLoaded('Bagnon_GuildBank') then
 			self:AddItem(L.GuildBank, 'guildbank')
 		end
@@ -292,8 +299,7 @@ function FrameOptions:GetFrameSelector()
 	return self.frameSelector
 end
 
-
---[[ Color Pickers ]]--
+--[[ Color Pickers ]] --
 
 --frame color
 function FrameOptions:CreateColorSelector()
@@ -335,8 +341,7 @@ function FrameOptions:GetBorderColorSelector()
 	return self.borderColorSelector
 end
 
-
---[[ Sliders ]]--
+--[[ Sliders ]] --
 
 --columns
 function FrameOptions:CreateColumnsSlider()
@@ -458,9 +463,7 @@ function FrameOptions:GetLayerSlider()
 	return self.layerSlider
 end
 
-
-
---[[ Check Boxes ]]--
+--[[ Check Boxes ]] --
 
 --bag frame
 function FrameOptions:CreateToggleBagFrameCheckbox()
@@ -482,7 +485,6 @@ function FrameOptions:GetToggleBagFrameCheckbox()
 	return self.toggleBagFrameCheckbox
 end
 
-
 --money frame
 function FrameOptions:CreateToggleMoneyFrameCheckbox()
 	local button = Bagnon.OptionsCheckButton:New(L.EnableMoneyFrame, self)
@@ -502,7 +504,6 @@ end
 function FrameOptions:GetToggleMoneyFrameCheckbox()
 	return self.toggleMoneyFrameCheckbox
 end
-
 
 --databroker frame
 function FrameOptions:CreateToggleDBOFrameCheckbox()
@@ -524,7 +525,6 @@ function FrameOptions:GetToggleDBOFrameCheckbox()
 	return self.toggleDBOFrameCheckbox
 end
 
-
 --search frame toggle
 function FrameOptions:CreateToggleSearchFrameCheckbox()
 	local button = Bagnon.OptionsCheckButton:New(L.EnableSearchToggle, self)
@@ -545,6 +545,25 @@ function FrameOptions:GetToggleSearchFrameCheckbox()
 	return self.toggleSearchFrameCheckbox
 end
 
+--sortBtn toggle
+function FrameOptions:CreateBtnSortCheckbox()
+	local button = Bagnon.OptionsCheckButton:New(L.EnableSortBtn, self)
+
+	button.OnEnableSetting = function(self, enable)
+		self:GetParent():GetSettings():SetHasSortBtn(enable)
+	end
+
+	button.IsSettingEnabled = function(self, enable)
+		return self:GetParent():GetSettings():HasSortBtn()
+	end
+
+	self.btnSortCheckbox = button
+	return button
+end
+
+function FrameOptions:GetSortBtnCheckBox()
+	return self.btnSortCheckbox
+end
 
 --options frame toggle
 function FrameOptions:CreateToggleOptionsCheckbox()
@@ -565,7 +584,6 @@ end
 function FrameOptions:GetToggleOptionsCheckbox()
 	return self.toggleOptionsCheckbox
 end
-
 
 --reverse slot ordering
 function FrameOptions:CreateReverseSlotOrderCheckbox()
@@ -607,7 +625,6 @@ function FrameOptions:GetBagBreakCheckbox()
 	return self.bagBreakCheckbox
 end
 
-
 --[[
 	Update Methods
 --]]
@@ -627,7 +644,6 @@ function FrameOptions:GetSettings()
 	return Bagnon.FrameSettings:Get(self:GetFrameID())
 end
 
-
---[[ Load the thing ]]--
+--[[ Load the thing ]] --
 
 FrameOptions:Load()

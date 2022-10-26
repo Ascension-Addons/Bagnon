@@ -10,7 +10,7 @@ Bagnon.SavedFrameSettings = SavedFrameSettings
 
 --[[---------------------------------------------------------------------------
 	Local Functions of Justice
---]]---------------------------------------------------------------------------
+--]] ---------------------------------------------------------------------------
 
 local function removeDefaults(tbl, defaults)
 	for k, v in pairs(defaults) do
@@ -37,29 +37,27 @@ local function copyDefaults(tbl, defaults)
 	return tbl
 end
 
-
 --[[---------------------------------------------------------------------------
 	Constructorish
---]]---------------------------------------------------------------------------
+--]] ---------------------------------------------------------------------------
 
 SavedFrameSettings.mt = {
 	__index = SavedFrameSettings
 }
 
-SavedFrameSettings.objects = setmetatable({}, {__index = function(tbl, id)
-	local obj = setmetatable({frameID = id}, SavedFrameSettings.mt)
+SavedFrameSettings.objects = setmetatable({}, { __index = function(tbl, id)
+	local obj = setmetatable({ frameID = id }, SavedFrameSettings.mt)
 	tbl[id] = obj
 	return obj
-end})
+end })
 
 function SavedFrameSettings:Get(id)
 	return self.objects[id]
 end
 
-
 --[[---------------------------------------------------------------------------
 	Events
---]]---------------------------------------------------------------------------
+--]] ---------------------------------------------------------------------------
 
 --create an event handler
 do
@@ -79,10 +77,9 @@ function SavedFrameSettings:PLAYER_LOGOUT()
 	self:ClearDefaults()
 end
 
-
 --[[---------------------------------------------------------------------------
 	Accessor Methods
---]]---------------------------------------------------------------------------
+--]] ---------------------------------------------------------------------------
 
 --get settings for all frames
 --only one instance of this for everything (hence the lack of self use)
@@ -124,15 +121,14 @@ function SavedFrameSettings:GetFrameID()
 	return self.frameID
 end
 
-
 --[[---------------------------------------------------------------------------
 	Upgrade Methods
---]]---------------------------------------------------------------------------
+--]] ---------------------------------------------------------------------------
 
 function SavedFrameSettings:UpgradeDB()
 	local major, minor, bugfix = self:GetDBVersion():match('(%w+)%.(%w+)%.(%w+)')
 	local db = self:GetGlobalDB()
-	
+
 	--hidden bags upgrade
 	for frameID, settings in pairs(db.frames) do
 		local hiddenBags = settings.hiddenBags
@@ -166,19 +162,18 @@ function SavedFrameSettings:ClearDefaults()
 
 	for frameID, settings in pairs(db.frames) do
 		removeDefaults(settings, self:GetDefaultSettings(frameID))
-		
+
 		if next(settings) == nil then
 			db[frameID] = nil
 		end
 	end
 end
 
-
 --[[---------------------------------------------------------------------------
 	Update Methods
---]]---------------------------------------------------------------------------
+--]] ---------------------------------------------------------------------------
 
---[[ Frame Color ]]--
+--[[ Frame Color ]] --
 
 --background
 function SavedFrameSettings:SetColor(r, g, b, a)
@@ -208,8 +203,7 @@ function SavedFrameSettings:GetBorderColor()
 	return r, g, b, a
 end
 
-
---[[ Frame Position ]]--
+--[[ Frame Position ]] --
 
 function SavedFrameSettings:SetPosition(point, x, y)
 	local db = self:GetDB()
@@ -223,8 +217,7 @@ function SavedFrameSettings:GetPosition()
 	return db.point, db.x, db.y
 end
 
-
---[[ Frame Scale ]]--
+--[[ Frame Scale ]] --
 
 function SavedFrameSettings:SetScale(scale)
 	self:GetDB().scale = scale
@@ -234,8 +227,7 @@ function SavedFrameSettings:GetScale()
 	return self:GetDB().scale
 end
 
-
---[[ Frame Opacity ]]--
+--[[ Frame Opacity ]] --
 
 function SavedFrameSettings:SetOpacity(opacity)
 	self:GetDB().opacity = opacity
@@ -245,8 +237,7 @@ function SavedFrameSettings:GetOpacity()
 	return self:GetDB().opacity
 end
 
-
---[[ Frame Layer]]--
+--[[ Frame Layer]] --
 
 function SavedFrameSettings:SetLayer(layer)
 	self:GetDB().frameLayer = layer
@@ -256,8 +247,7 @@ function SavedFrameSettings:GetLayer()
 	return self:GetDB().frameLayer
 end
 
-
---[[ Frame Components ]]--
+--[[ Frame Components ]] --
 
 function SavedFrameSettings:SetHasBagFrame(enable)
 	self:GetDB().hasBagFrame = enable or false
@@ -291,6 +281,14 @@ function SavedFrameSettings:HasSearchToggle()
 	return self:GetDB().hasSearchToggle
 end
 
+function SavedFrameSettings:SetHasSortBtn(enable)
+	self:GetDB().hasSortBtn = enable or false
+end
+
+function SavedFrameSettings:HasSortBtn()
+	return self:GetDB().hasSortBtn
+end
+
 function SavedFrameSettings:SetHasOptionsToggle(enable)
 	self:GetDB().hasOptionsToggle = enable or false
 end
@@ -299,8 +297,7 @@ function SavedFrameSettings:HasOptionsToggle()
 	return self:GetDB().hasOptionsToggle
 end
 
-
---[[ Frame Bags ]]--
+--[[ Frame Bags ]] --
 
 --show a bag
 function SavedFrameSettings:ShowBag(bag)
@@ -326,8 +323,7 @@ function SavedFrameSettings:GetHiddenBags()
 	return self:GetDB().hiddenBags
 end
 
-
---[[ Item Frame Layout ]]--
+--[[ Item Frame Layout ]] --
 
 --columns
 function SavedFrameSettings:SetItemFrameColumns(columns)
@@ -356,8 +352,7 @@ function SavedFrameSettings:IsBagBreakEnabled()
 	return self:GetDB().bagBreak
 end
 
-
---[[ Item Frame Slot ORdering ]]--
+--[[ Item Frame Slot ORdering ]] --
 
 function SavedFrameSettings:SetReverseSlotOrder(enable)
 	self:GetDB().reverseSlotOrder = enable
@@ -367,8 +362,7 @@ function SavedFrameSettings:IsSlotOrderReversed()
 	return self:GetDB().reverseSlotOrder
 end
 
-
---[[ Databroker Display Object ]]--
+--[[ Databroker Display Object ]] --
 
 function SavedFrameSettings:SetBrokerDisplayObject(objectName)
 	self:GetDB().dataBrokerObject = objectName
@@ -378,10 +372,9 @@ function SavedFrameSettings:GetBrokerDisplayObject()
 	return self:GetDB().dataBrokerObject
 end
 
-
 --[[---------------------------------------------------------------------------
 	Frame Defaults
---]]---------------------------------------------------------------------------
+--]] ---------------------------------------------------------------------------
 
 --generic
 function SavedFrameSettings:GetDefaultSettings(frameID)
@@ -402,9 +395,9 @@ end
 function SavedFrameSettings:GetDefaultInventorySettings()
 	local defaults = SavedFrameSettings.invDefaults or {
 		--bag settings
-		availableBags = {BACKPACK_CONTAINER, 1, 2, 3, 4, KEYRING_CONTAINER},
-	
-		hiddenBags = {			
+		availableBags = { BACKPACK_CONTAINER, 1, 2, 3, 4, KEYRING_CONTAINER },
+
+		hiddenBags = {
 			[BACKPACK_CONTAINER] = false,
 			[1] = false,
 			[2] = false,
@@ -414,8 +407,8 @@ function SavedFrameSettings:GetDefaultInventorySettings()
 		},
 
 		--frame
-		frameColor = {0, 0, 0, 0.5},
-		frameBorderColor = {1, 1, 1, 1},
+		frameColor = { 0, 0, 0, 0.5 },
+		frameBorderColor = { 1, 1, 1, 1 },
 		scale = 1,
 		opacity = 1,
 		point = 'BOTTOMRIGHT',
@@ -433,12 +426,13 @@ function SavedFrameSettings:GetDefaultInventorySettings()
 		hasBagFrame = true,
 		hasDBOFrame = true,
 		hasSearchToggle = true,
+		hasSortBtn = true,
 		hasOptionsToggle = true,
 		hasKeyringToggle = true,
 
 		--dbo display object
 		dataBrokerObject = 'BagnonLauncher',
-		
+
 		--slot ordering
 		reverseSlotOrder = false,
 	}
@@ -451,7 +445,7 @@ end
 function SavedFrameSettings:GetDefaultBankSettings()
 	local defaults = SavedFrameSettings.bankDefaults or {
 		--bag settings
-		availableBags = {BANK_CONTAINER, 5, 6, 7, 8, 9, 10, 11},
+		availableBags = { BANK_CONTAINER, 5, 6, 7, 8, 9, 10, 11 },
 		hiddenBags = {
 			[BANK_CONTAINER] = false,
 			[5] = false,
@@ -464,8 +458,8 @@ function SavedFrameSettings:GetDefaultBankSettings()
 		},
 
 		--frame
-		frameColor = {0, 0, 0, 0.5},
-		frameBorderColor = {1, 1, 0, 1},
+		frameColor = { 0, 0, 0, 0.5 },
+		frameBorderColor = { 1, 1, 0, 1 },
 		scale = 1,
 		opacity = 1,
 		point = 'BOTTOMLEFT',
@@ -483,12 +477,13 @@ function SavedFrameSettings:GetDefaultBankSettings()
 		hasBagFrame = true,
 		hasDBOFrame = true,
 		hasSearchToggle = true,
+		hasSortBtn = false,
 		hasOptionsToggle = true,
 		hasKeyringToggle = false,
 
 		--dbo display object
 		dataBrokerObject = 'BagnonLauncher',
-		
+
 		--slot ordering
 		reverseSlotOrder = false,
 	}
@@ -500,14 +495,14 @@ end
 function SavedFrameSettings:GetDefaultKeyRingSettings()
 	local defaults = SavedFrameSettings.keyDefaults or {
 		--bag settings
-		availableBags = {KEYRING_CONTAINER},
+		availableBags = { KEYRING_CONTAINER },
 		hiddenBags = {
 			[KEYRING_CONTAINER] = false
 		},
 
 		--frame,
-		frameColor = {0, 0, 0, 0.5},
-		frameBorderColor = {0, 1, 1, 1},
+		frameColor = { 0, 0, 0, 0.5 },
+		frameBorderColor = { 0, 1, 1, 1 },
 		scale = 1,
 		opacity = 1,
 		point = 'BOTTOMRIGHT',
@@ -525,12 +520,13 @@ function SavedFrameSettings:GetDefaultKeyRingSettings()
 		hasBagFrame = false,
 		hasDBOFrame = false,
 		hasSearchToggle = false,
+		hasSortBtn = false,
 		hasOptionsToggle = true,
 		hasKeyringToggle = false,
 
 		--dbo display object
 		dataBrokerObject = 'BagnonLauncher',
-		
+
 		--slot ordering
 		reverseSlotOrder = false,
 	}

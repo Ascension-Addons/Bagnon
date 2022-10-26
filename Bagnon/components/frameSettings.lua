@@ -10,26 +10,25 @@ Bagnon.FrameSettings = FrameSettings
 
 --[[---------------------------------------------------------------------------
 	Constructorish
---]]---------------------------------------------------------------------------
+--]] ---------------------------------------------------------------------------
 
 FrameSettings.mt = {
 	__index = FrameSettings
 }
 
-FrameSettings.objects = setmetatable({}, {__index = function(tbl, id)
-	local obj = setmetatable({frameID = id, shown = 0}, FrameSettings.mt)
+FrameSettings.objects = setmetatable({}, { __index = function(tbl, id)
+	local obj = setmetatable({ frameID = id, shown = 0 }, FrameSettings.mt)
 	tbl[id] = obj
 	return obj
-end})
+end })
 
 function FrameSettings:Get(id)
 	return self.objects[id]
 end
 
-
 --[[---------------------------------------------------------------------------
 	Accessor Methods
---]]---------------------------------------------------------------------------
+--]] ---------------------------------------------------------------------------
 
 
 function FrameSettings:GetID()
@@ -42,22 +41,20 @@ function FrameSettings:GetDB()
 	return db
 end
 
-
 --[[---------------------------------------------------------------------------
 	Message Passing
---]]---------------------------------------------------------------------------
+--]] ---------------------------------------------------------------------------
 
 function FrameSettings:SendMessage(msg, ...)
 	Bagnon.Callbacks:SendMessage(msg, self:GetID(), ...)
 end
 
-
 --[[---------------------------------------------------------------------------
 	Update Methods
---]]---------------------------------------------------------------------------
+--]] ---------------------------------------------------------------------------
 
 
---[[ Frame Visibility ]]--
+--[[ Frame Visibility ]] --
 
 --the logic here is a little wacky, since we deal with auto open/close events
 --if a frame was manually opened, then it should only be closable manually
@@ -94,14 +91,13 @@ function FrameSettings:IsShown()
 	return (self.shown or 0) > 0
 end
 
-
---[[ Frame Position ]]--
+--[[ Frame Position ]] --
 
 --position
 function FrameSettings:SetPosition(point, x, y)
 	local oPoint, oX, oY = self:GetPosition()
 
-	if not(point == oPoint and x == oX and y == oY) then
+	if not (point == oPoint and x == oX and y == oY) then
 		self:GetDB():SetPosition(point, x, y)
 		self:SendMessage('FRAME_POSITION_UPDATE', self:GetPosition())
 	end
@@ -116,8 +112,7 @@ function FrameSettings:IsMovable()
 	return not Bagnon.Settings:AreFramePositionsLocked()
 end
 
-
---[[ Frame Layout ]]--
+--[[ Frame Layout ]] --
 
 --scale
 function FrameSettings:SetScale(scale)
@@ -147,7 +142,7 @@ end
 function FrameSettings:SetColor(r, g, b, a)
 	local pR, pG, pB, pA = self:GetColor()
 
-	if not(pR == r and pG == g and pB == b and pA == a) then
+	if not (pR == r and pG == g and pB == b and pA == a) then
 		self:GetDB():SetColor(r, g, b, a)
 		self:SendMessage('FRAME_COLOR_UPDATE', self:GetColor())
 	end
@@ -161,7 +156,7 @@ end
 function FrameSettings:SetBorderColor(r, g, b, a)
 	local pR, pG, pB, pA = self:GetBorderColor()
 
-	if not(pR == r and pG == g and pB == b and pA == a) then
+	if not (pR == r and pG == g and pB == b and pA == a) then
 		self:GetDB():SetBorderColor(r, g, b, a)
 		self:SendMessage('FRAME_BORDER_COLOR_UPDATE', self:GetBorderColor())
 	end
@@ -186,13 +181,12 @@ end
 --returns a list of all possible frame layers
 function FrameSettings:GetAvailableLayers()
 	if not FrameSettings.availableFrameLayers then
-		FrameSettings.availableFrameLayers = {'LOW', 'MEDIUMLOW', 'MEDIUM', 'MEDIUMHIGH', 'HIGH', 'TOPLEVEL'}
+		FrameSettings.availableFrameLayers = { 'LOW', 'MEDIUMLOW', 'MEDIUM', 'MEDIUMHIGH', 'HIGH', 'TOPLEVEL' }
 	end
 	return FrameSettings.availableFrameLayers
 end
 
-
---[[ Frame Components ]]--
+--[[ Frame Components ]] --
 
 --returns true if the frame has a bag frame, and false otherwise
 function FrameSettings:SetHasBagFrame(enable)
@@ -250,6 +244,20 @@ function FrameSettings:HasSearchToggle()
 	return self:GetDB():HasSearchToggle()
 end
 
+--sort btn
+function FrameSettings:SetHasSortBtn(enable)
+	local enable = enable and true or false
+
+	if self:HasSortBtn() ~= enable then
+		self:GetDB():SetHasSortBtn(enable)
+		self:SendMessage('SORT_BTN_ENABLE_UPDATE', self:HasSortBtn())
+	end
+end
+
+function FrameSettings:HasSortBtn()
+	return self:GetDB():HasSortBtn()
+end
+
 --options toggle
 function FrameSettings:SetHasOptionsToggle(enable)
 	local enable = enable and true or false
@@ -264,8 +272,7 @@ function FrameSettings:HasOptionsToggle()
 	return self:GetDB():HasOptionsToggle()
 end
 
-
---[[ Broker Display Object ]]--
+--[[ Broker Display Object ]] --
 
 function FrameSettings:SetBrokerDisplayObject(objectName)
 	if self:GetBrokerDisplayObject() ~= objectName then
@@ -278,8 +285,7 @@ function FrameSettings:GetBrokerDisplayObject()
 	return self:GetDB():GetBrokerDisplayObject()
 end
 
-
---[[ Bag Frame Visibility ]]--
+--[[ Bag Frame Visibility ]] --
 
 function FrameSettings:ShowBagFrame()
 	if not self:IsBagFrameShown() then
@@ -307,8 +313,7 @@ function FrameSettings:IsBagFrameShown()
 	return self.showBagFrame
 end
 
-
---[[ Item Frame Layout ]]--
+--[[ Item Frame Layout ]] --
 
 --spacing
 function FrameSettings:SetItemFrameSpacing(spacing)
@@ -348,8 +353,7 @@ function FrameSettings:IsBagBreakEnabled()
 	return self:GetDB():IsBagBreakEnabled()
 end
 
-
---[[ Bag Slot Availability ]]--
+--[[ Bag Slot Availability ]] --
 
 --returns true if the slot is available to this frame, and false otherwise
 function FrameSettings:HasBagSlot(slot)
@@ -366,8 +370,7 @@ function FrameSettings:GetBagSlots()
 	return ipairs(self:GetDB():GetBags())
 end
 
-
---[[ Bag Slot Visibility ]]--
+--[[ Bag Slot Visibility ]] --
 
 function FrameSettings:ShowBagSlot(slotToShow)
 	if not self:IsBagSlotShown(slotToShow) then
@@ -404,8 +407,7 @@ function FrameSettings:IsBagSlotHidden(slot)
 	return not self:GetDB():IsBagShown(slot)
 end
 
-
---[[ Bag Slot Iterators ]]--
+--[[ Bag Slot Iterators ]] --
 
 --returns an iterator for all bag slots that are available to this frame and marked as visible
 local function reverseVisibleSlotIterator(obj, i)
@@ -440,7 +442,6 @@ function FrameSettings:GetVisibleBagSlots()
 	return visibleSlotIterator, self, 0
 end
 
-
 function FrameSettings:SetReverseSlotOrder(enable)
 	local enable = enable and true or false
 	if self:IsSlotOrderReversed() ~= enable then
@@ -453,8 +454,7 @@ function FrameSettings:IsSlotOrderReversed()
 	return self:GetDB():IsSlotOrderReversed()
 end
 
-
---[[ Text Filtering ]]--
+--[[ Text Filtering ]] --
 
 function FrameSettings:EnableTextSearch()
 	if not self:IsTextSearchEnabled() then
@@ -482,8 +482,7 @@ function FrameSettings:IsTextSearchEnabled()
 	return self.enableTextSearch
 end
 
-
---[[ Bag Filtering ]]--
+--[[ Bag Filtering ]] --
 
 function FrameSettings:SetBagSearch(bagSlotID)
 	if self:GetBagSearch() ~= bagSlotID then
@@ -496,8 +495,7 @@ function FrameSettings:GetBagSearch()
 	return self.bagSearch or false
 end
 
-
---[[ Player Filtering ]]--
+--[[ Player Filtering ]] --
 
 function FrameSettings:SetPlayerFilter(player)
 	local currentFilter = self:GetPlayerFilter()
