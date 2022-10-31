@@ -846,7 +846,11 @@ function Frame:PlaceSortBtn()
 	if self:HasSortBtn() then
 		local toggle = self:GetSortBtn() or self:CreateSortBtn()
 		toggle:ClearAllPoints()
-		toggle:SetPoint('TOPRIGHT', self, 'TOPRIGHT', -58, -8)
+		if self:HasOptionsToggle() then
+			toggle:SetPoint('TOPRIGHT', self, 'TOPRIGHT', -57, -8)
+		else
+			toggle:SetPoint('TOPRIGHT', self, 'TOPRIGHT', -32, -8)
+		end
 		toggle:Show()
 
 		return toggle:GetWidth(), toggle:GetHeight()
