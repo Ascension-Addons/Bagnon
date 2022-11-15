@@ -8,9 +8,9 @@ local itemInfo = {}
 local SILVER = '|cffc7c7cf%s|r'
 local TEAL = '|cff00ff9a%s|r'
 
-local function CountsToInfoString(invCount, bankCount, equipCount)
+local function CountsToInfoString(invCount, bankCount, equipCount, pbankCount)
 	local info
-	local total = invCount + bankCount + equipCount
+	local total = invCount + bankCount + equipCount + pbankCount
 
 	if invCount > 0 then
 		info = BAGNON_NUM_BAGS:format(invCount)
@@ -18,6 +18,15 @@ local function CountsToInfoString(invCount, bankCount, equipCount)
 
 	if bankCount > 0 then
 		local count = BAGNON_NUM_BANK:format(bankCount)
+		if info then
+			info = strjoin(', ', info, count)
+		else
+			info = count
+		end
+	end
+	
+	if pbankCount > 0 then
+		local count = BAGNON_NUM_PBANK:format(pbankCount)
 		if info then
 			info = strjoin(', ', info, count)
 		else
@@ -57,10 +66,15 @@ do
 				for i = 1, NUM_BANKBAGSLOTS do
 					bankCount = bankCount + BagnonDB:GetItemCount(link, NUM_BAG_SLOTS + i, player)
 				end
+				
+				local personalBankCount = 0
+				for i = 1, 6 do
+					personalBankCount = personalBankCount + BagnonDB:GetItemCount(link, i + ASC_PERSONAL_BANK_OFFSET, player)
+				end
 
 				local equipCount = BagnonDB:GetItemCount(link, 'e', player)
 
-				self[link] = CountsToInfoString(invCount or 0, bankCount or 0, equipCount or 0) or ''
+				self[link] = CountsToInfoString(invCount or 0, bankCount or 0, equipCount or 0, personalBankCount or 0) or ''
 				return self[link]
 			end})
 		end
@@ -80,10 +94,15 @@ local function AddOwners(frame, link)
 			for i = 1, NUM_BANKBAGSLOTS do
 				bankCount = bankCount + BagnonDB:GetItemCount(link, NUM_BAG_SLOTS + i, player)
 			end
+			
+			local personalBankCount = 0
+			for i = 1, 6 do
+				personalBankCount = personalBankCount + BagnonDB:GetItemCount(link, i + ASC_PERSONAL_BANK_OFFSET, player)
+			end
 
 			local equipCount = BagnonDB:GetItemCount(link, 'e', player)
 
-			infoString = CountsToInfoString(invCount or 0, bankCount or 0, equipCount or 0)
+			infoString = CountsToInfoString(invCount or 0, bankCount or 0, equipCount or 0, personalBankCount or 0)
 		else
 			infoString = itemInfo[player][link]
 		end
