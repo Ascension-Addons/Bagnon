@@ -411,7 +411,7 @@ function BagnonDB:SaveEquipment()
 		if link then
 			local link = ToShortLink(link)
 			local count =  GetInventoryItemCount('player', slot)
-			count = count >= 1 and count or nil
+			count = count > 1 and count or nil
 			
 			if(link and count) then
 				self.pdb[index] = format('%s,%d', link, count)
