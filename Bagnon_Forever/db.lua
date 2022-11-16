@@ -12,6 +12,8 @@ BagnonDB:SetScript('OnEvent', function(self, event, arg1)
 end)
 BagnonDB:RegisterEvent('ADDON_LOADED')
 
+ASC_PERSONAL_BANK_OFFSET = 1000;
+
 --constants
 local L = BAGNON_FOREVER_LOCALS
 local CURRENT_VERSION = GetAddOnMetadata('Bagnon_Forever', 'Version')
@@ -40,6 +42,10 @@ end
 local function ToShortLink(link)
 	if link then
 		local a,b,c,d,e,f,g,h = link:match('(%-?%d+):(%-?%d+):(%-?%d+):(%-?%d+):(%-?%d+):(%-?%d+):(%-?%d+):(%-?%d+)')
+		
+		--ASC sets this to unique id in the personal bank, clear it
+		c = 0;
+		
 		if(b == '0' and b == c and c == d and d == e and e == f and f == g) then
 			return a
 		end
@@ -51,6 +57,11 @@ local function GetBagSize(bag)
 	if bag == KEYRING_CONTAINER then
 		return GetKeyRingSize()
 	end
+	
+	if (bag >= ASC_PERSONAL_BANK_OFFSET) then
+		return 98
+	end
+		
 	if bag == 'e' then
 		return NUM_EQUIPMENT_SLOTS
 	end
@@ -124,6 +135,10 @@ function BagnonDB:PLAYER_LOGIN()
 	self:SaveEquipment()
 	self:SaveNumBankSlots()
 
+
+	self:RegisterEvent('GUILDBANKFRAME_OPENED')
+	self:RegisterEvent('GUILDBANKFRAME_CLOSED')
+	self:RegisterEvent('GUILDBANKBAGSLOTS_CHANGED')
 	self:RegisterEvent('BANKFRAME_OPENED')
 	self:RegisterEvent('BANKFRAME_CLOSED')
 	self:RegisterEvent('PLAYER_MONEY')
@@ -163,6 +178,48 @@ end
 function BagnonDB:BANKFRAME_CLOSED()
 	self.atBank = nil
 end
+
+
+
+function BagnonDB:GUILDBANKFRAME_OPENED()
+	if HasJsonCacheData("BANK_PERMISSIONS_PAYLOAD", 0) then
+		local json = GetJsonCacheData("BANK_PERMISSIONS_PAYLOAD", 0)
+		if json then
+			local jsonObject = C_Serialize:FromJSON(json)
+			if jsonObject then
+				self.IsPersonalBank = jsonObject.IsPersonalBank
+				self.IsRealmBank = jsonObject.IsRealmBank
+			end
+		end
+	end
+	
+	
+	if (self.IsPersonalBank) then
+		for i = 1, 6 do
+			local avail = GetGuildBankTabInfo(i)
+			if type(avail) == "string" then
+				self:UpdateBag(i + ASC_PERSONAL_BANK_OFFSET)
+			end
+		end
+	end
+end
+
+function BagnonDB:GUILDBANKFRAME_CLOSED()
+	self.IsPersonalBank = nil
+	self.IsRealmBank = nil
+end
+
+function BagnonDB:GUILDBANKBAGSLOTS_CHANGED()
+	if (self.IsPersonalBank) then
+		for i = 1, 6 do
+			local avail = GetGuildBankTabInfo(i)
+			if type(avail) == "string" then
+				self:UpdateBag(i + ASC_PERSONAL_BANK_OFFSET)
+			end
+		end
+	end
+end
+
 
 function BagnonDB:UNIT_INVENTORY_CHANGED(event, unit)
 	if unit == 'player' then
@@ -314,6 +371,11 @@ function BagnonDB:GetItemCount(itemLink, bag, player)
 	local total = 0
 	local itemLink = select(2, GetItemInfo(ToShortLink(itemLink)))
 	local size = (self:GetBagData(bag, player)) or 0
+	
+	if (bag == "e") then
+		size = NUM_EQUIPMENT_SLOTS
+	end
+	
 	for slot = 1, size do
 		local link, count = self:GetItemData(bag, slot, player)
 		if link == itemLink then
@@ -350,7 +412,7 @@ function BagnonDB:SaveEquipment()
 			local link = ToShortLink(link)
 			local count =  GetInventoryItemCount('player', slot)
 			count = count > 1 and count or nil
-
+			
 			if(link and count) then
 				self.pdb[index] = format('%s,%d', link, count)
 			else
@@ -364,48 +426,81 @@ end
 
 --saves data about a specific item the current player has
 function BagnonDB:SaveItem(bag, slot)
-	local texture, count = GetContainerItemInfo(bag, slot)
 
-	local index = ToIndex(bag, slot)
 
-	if texture then
-		local link = ToShortLink(GetContainerItemLink(bag, slot))
-		count = count > 1 and count or nil
+	if (bag > ASC_PERSONAL_BANK_OFFSET) then
+		local texture, count = GetGuildBankItemInfo(bag - ASC_PERSONAL_BANK_OFFSET, slot)
 
-		if(link and count) then
-			self.pdb[index] = format('%s,%d', link, count)
+		local index = ToIndex(bag, slot)
+
+		if texture then
+			local link = ToShortLink(GetGuildBankItemLink(bag - ASC_PERSONAL_BANK_OFFSET, slot))
+			count = count > 1 and count or nil
+			if(link and count) then
+				self.pdb[index] = format('%s,%d', link, count)
+			else
+				self.pdb[index] = link
+			end
 		else
-			self.pdb[index] = link
+			self.pdb[index] = nil
 		end
 	else
-		self.pdb[index] = nil
+		local texture, count = GetContainerItemInfo(bag, slot)
+
+		local index = ToIndex(bag, slot)
+
+		if texture then
+			local link = ToShortLink(GetContainerItemLink(bag, slot))
+			count = count > 1 and count or nil
+
+			if(link and count) then
+				self.pdb[index] = format('%s,%d', link, count)
+			else
+				self.pdb[index] = link
+			end
+		else
+			self.pdb[index] = nil
+		end
 	end
+
 end
 
 --saves all information about the given bag, EXCEPT the bag's contents
 function BagnonDB:SaveBag(bag)
 	local data = self.pdb
-	local size = GetBagSize(bag)
-	local index = ToBagIndex(bag)
 
-	if size > 0 then
-		local equipSlot = bag > 0 and ContainerIDToInventoryID(bag)
-		local link = ToShortLink(GetInventoryItemLink('player', equipSlot))
-		local count =  GetInventoryItemCount('player', equipSlot)
-		if count < 1 then
-			count = nil
-		end
+	if (bag >= ASC_PERSONAL_BANK_OFFSET) then
+		local size =  GetBagSize(bag)
+		local index = ToBagIndex(bag)
+		self.pdb[index] = size
+	else 
+		local size = GetBagSize(bag)
+		local index = ToBagIndex(bag)
 
-		if(size and link and count) then
-			self.pdb[index] = format('%d,%s,%d', size, link, count)
-		elseif(size and link) then
-			self.pdb[index] = format('%d,%s', size, link)
+		if size > 0 then
+			local equipSlot = bag > 0 and ContainerIDToInventoryID(bag)
+			local link = ToShortLink(GetInventoryItemLink('player', equipSlot))
+			local count =  GetInventoryItemCount('player', equipSlot)
+			if count < 1 then
+				count = nil
+			end
+
+			if(size and link and count) then
+				self.pdb[index] = format('%d,%s,%d', size, link, count)
+			elseif(size and link) then
+				self.pdb[index] = format('%d,%s', size, link)
+			else
+				self.pdb[index] = size
+			end
 		else
-			self.pdb[index] = size
+			self.pdb[index] = nil
 		end
-	else
-		self.pdb[index] = nil
+		
+		
 	end
+	
+	
+
 end
 
 --saves both relevant information about the given bag, and all information about items in the given bag
