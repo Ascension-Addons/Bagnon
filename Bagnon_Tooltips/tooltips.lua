@@ -8,7 +8,7 @@ local itemInfo = {}
 local SILVER = '|cffc7c7cf%s|r'
 local TEAL = '|cff00ff9a%s|r'
 
-local function CountsToInfoString(invCount, bankCount, equipCount, pbankCount)
+local function CountsToInfoString(invCount, bankCount, equipCount, pbankCount, rbankCount)
 	local info
 	local total = invCount + bankCount + equipCount + pbankCount
 
@@ -27,6 +27,15 @@ local function CountsToInfoString(invCount, bankCount, equipCount, pbankCount)
 	
 	if pbankCount > 0 then
 		local count = BAGNON_NUM_PBANK:format(pbankCount)
+		if info then
+			info = strjoin(', ', info, count)
+		else
+			info = count
+		end
+	end
+	
+	if rbankCount > 0 then
+		local count = BAGNON_NUM_RBANK:format(rbankCount)
 		if info then
 			info = strjoin(', ', info, count)
 		else
@@ -52,11 +61,14 @@ local function CountsToInfoString(invCount, bankCount, equipCount, pbankCount)
 	end
 end
 
+local currentRealm = GetRealmName() --what currentRealm we're on
+
 --make up the self populating table
 do
 	for player in BagnonDB:GetPlayers() do
-		if player ~= currentPlayer then
+		if player ~= currentPlayer and player ~= currentRealm then
 			itemInfo[player] = setmetatable({}, {__index = function(self, link)
+			
 				local invCount = BagnonDB:GetItemCount(link, KEYRING_CONTAINER, player)
 				for bag = 0, NUM_BAG_SLOTS do
 					invCount = invCount + BagnonDB:GetItemCount(link, bag, player)
@@ -71,10 +83,15 @@ do
 				for i = 1, 6 do
 					personalBankCount = personalBankCount + BagnonDB:GetItemCount(link, i + ASC_PERSONAL_BANK_OFFSET, player)
 				end
+				
+				local realmBankCount = 0
+				for i = 1, 6 do
+					realmBankCount = realmBankCount + BagnonDB:GetItemCount(link, i + ASC_REALM_BANK_OFFSET, player)
+				end		
 
 				local equipCount = BagnonDB:GetItemCount(link, 'e', player)
 
-				self[link] = CountsToInfoString(invCount or 0, bankCount or 0, equipCount or 0, personalBankCount or 0) or ''
+				self[link] = CountsToInfoString(invCount or 0, bankCount or 0, equipCount or 0, personalBankCount or 0, realmBankCount or 0) or ''
 				return self[link]
 			end})
 		end
@@ -84,7 +101,16 @@ end
 local function AddOwners(frame, link)
 	for player in BagnonDB:GetPlayers() do
 		local infoString
-		if player == currentPlayer then
+		
+		
+		if player == currentRealm then
+			local realmBankCount = 0
+			for i = 1, 6 do
+				realmBankCount = realmBankCount + BagnonDB:GetItemCount(link, i + ASC_REALM_BANK_OFFSET, player)
+			end
+
+			infoString = CountsToInfoString(0,0,0,0, realmBankCount or 0)
+		elseif player == currentPlayer then
 			local invCount = BagnonDB:GetItemCount(link, KEYRING_CONTAINER, player)
 			for bag = 0, NUM_BAG_SLOTS do
 				invCount = invCount + BagnonDB:GetItemCount(link, bag, player)
@@ -99,10 +125,10 @@ local function AddOwners(frame, link)
 			for i = 1, 6 do
 				personalBankCount = personalBankCount + BagnonDB:GetItemCount(link, i + ASC_PERSONAL_BANK_OFFSET, player)
 			end
-
+			
 			local equipCount = BagnonDB:GetItemCount(link, 'e', player)
 
-			infoString = CountsToInfoString(invCount or 0, bankCount or 0, equipCount or 0, personalBankCount or 0)
+			infoString = CountsToInfoString(invCount or 0, bankCount or 0, equipCount or 0, personalBankCount or 0, 0)
 		else
 			infoString = itemInfo[player][link]
 		end
