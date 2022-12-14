@@ -13,6 +13,7 @@ end)
 BagnonDB:RegisterEvent('ADDON_LOADED')
 
 ASC_PERSONAL_BANK_OFFSET = 1000;
+ASC_REALM_BANK_OFFSET = 2000;
 
 --constants
 local L = BAGNON_FOREVER_LOCALS
@@ -115,6 +116,12 @@ function BagnonDB:LoadSettings()
 		self.rdb[currentPlayer] = {}
 	end
 	self.pdb = self.rdb[currentPlayer]
+
+
+	if not self.rdb[currentRealm] then
+		self.rdb[currentRealm] = {}
+	end
+	self.realmdb = self.rdb[currentRealm]
 end
 
 function BagnonDB:UpdateSettings()
@@ -201,6 +208,16 @@ function BagnonDB:GUILDBANKFRAME_OPENED()
 				self:UpdateBag(i + ASC_PERSONAL_BANK_OFFSET)
 			end
 		end
+		return
+	end
+
+	if (self.IsRealmBank) then
+		for i = 1, 6 do
+			local avail = GetGuildBankTabInfo(i)
+			if type(avail) == "string" then
+				self:UpdateBag(i + ASC_REALM_BANK_OFFSET)
+			end
+		end
 	end
 end
 
@@ -215,6 +232,16 @@ function BagnonDB:GUILDBANKBAGSLOTS_CHANGED()
 			local avail = GetGuildBankTabInfo(i)
 			if type(avail) == "string" then
 				self:UpdateBag(i + ASC_PERSONAL_BANK_OFFSET)
+			end
+		end
+		return
+	end
+
+	if (self.IsRealmBank) then
+		for i = 1, 6 do
+			local avail = GetGuildBankTabInfo(i)
+			if type(avail) == "string" then
+				self:UpdateBag(i + ASC_REALM_BANK_OFFSET)
 			end
 		end
 	end
@@ -428,7 +455,23 @@ end
 function BagnonDB:SaveItem(bag, slot)
 
 
-	if (bag > ASC_PERSONAL_BANK_OFFSET) then
+	if (bag > ASC_REALM_BANK_OFFSET) then
+		local texture, count = GetGuildBankItemInfo(bag - ASC_REALM_BANK_OFFSET, slot)
+
+		local index = ToIndex(bag, slot)
+
+		if texture then
+			local link = ToShortLink(GetGuildBankItemLink(bag - ASC_REALM_BANK_OFFSET, slot))
+			count = count > 1 and count or nil
+			if(link and count) then
+				self.realmdb[index] = format('%s,%d', link, count)
+			else
+				self.realmdb[index] = link
+			end
+		else
+			self.realmdb[index] = nil
+		end
+	elseif (bag > ASC_PERSONAL_BANK_OFFSET) then
 		local texture, count = GetGuildBankItemInfo(bag - ASC_PERSONAL_BANK_OFFSET, slot)
 
 		local index = ToIndex(bag, slot)
@@ -469,7 +512,11 @@ end
 function BagnonDB:SaveBag(bag)
 	local data = self.pdb
 
-	if (bag >= ASC_PERSONAL_BANK_OFFSET) then
+	if (bag >= ASC_REALM_BANK_OFFSET) then
+		local size =  GetBagSize(bag)
+		local index = ToBagIndex(bag)
+		self.realmdb[index] = size
+	elseif (bag >= ASC_PERSONAL_BANK_OFFSET) then
 		local size =  GetBagSize(bag)
 		local index = ToBagIndex(bag)
 		self.pdb[index] = size
