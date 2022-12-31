@@ -5,7 +5,9 @@
 
 local Bagnon = LibStub('AceAddon-3.0'):GetAddon('Bagnon')
 local L = LibStub('AceLocale-3.0'):GetLocale('Bagnon')
+local Bucket = LibStub('AceBucket-3.0')
 local Bag = Bagnon.Classy:New('CheckButton')
+Bucket:Embed(Bag)
 Bagnon.Bag = Bag
 
 --constants
@@ -106,6 +108,7 @@ end
 function Bag:UpdateEvents()
 	self:UnregisterAllMessages()
 	self:UnregisterAllEvents()
+	self:UnregisterAllBuckets()
 	self:UnregisterAllItemSlotEvents()
 
 	if self:IsVisible() then
@@ -118,7 +121,7 @@ function Bag:UpdateEvents()
 			if not self:IsCached() then
 				self:RegisterEvent('ITEM_LOCK_CHANGED')
 				self:RegisterEvent('CURSOR_UPDATE')
-				self:RegisterEvent('BAG_UPDATE')
+				self:RegisterBucketEvent('BAG_UPDATE', 0.2, 'BAG_UPDATE')
 				self:RegisterEvent('PLAYERBANKSLOTS_UPDATED')
 				self:RegisterEvent('PLAYERBANKBAGSLOTS_UPDATED')
 			end
@@ -153,7 +156,7 @@ function Bag:CURSOR_UPDATE()
 	self:UpdateCursor()
 end
 
-function Bag:BAG_UPDATE(event, bag)
+function Bag:BAG_UPDATE()
 	self:UpdateLock()
 	self:UpdateSlotInfo()
 end

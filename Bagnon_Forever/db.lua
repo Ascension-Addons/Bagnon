@@ -3,7 +3,8 @@
 		BagnonForever's implementation of BagnonDB
 --]]
 
-BagnonDB = CreateFrame('GameTooltip', 'BagnonDB', nil, 'GameTooltipTemplate')
+BagnonDB = CreateFrame('GameTooltip', 'BagnonDB', nil, 'BasicTooltipTemplate')
+LibStub("AceBucket-3.0"):Embed(BagnonDB)
 BagnonDB:SetScript('OnEvent', function(self, event, arg1)
 	if arg1 == 'Bagnon_Forever' then
 		self:UnregisterEvent('ADDON_LOADED')
@@ -149,7 +150,7 @@ function BagnonDB:PLAYER_LOGIN()
 	self:RegisterEvent('BANKFRAME_OPENED')
 	self:RegisterEvent('BANKFRAME_CLOSED')
 	self:RegisterEvent('PLAYER_MONEY')
-	self:RegisterEvent('BAG_UPDATE')
+	self:RegisterBucketEvent('BAG_UPDATE', 0.2, 'BAG_UPDATE')
 	self:RegisterEvent('PLAYERBANKSLOTS_CHANGED')
 	self:RegisterEvent('UNIT_INVENTORY_CHANGED')
 	self:RegisterEvent('PLAYERBANKBAGSLOTS_CHANGED')
@@ -159,9 +160,11 @@ function BagnonDB:PLAYER_MONEY()
 	self:SaveMoney()
 end
 
-function BagnonDB:BAG_UPDATE(event, bag)
-	if not(bag == BANK_CONTAINER or bag > NUM_BAG_SLOTS) or self.atBank then
-		self:OnBagUpdate(bag)
+function BagnonDB:BAG_UPDATE(bagIDs)
+	for bagID in pairs(bagIDs) do
+		if not(bagID == BANK_CONTAINER or bagID > NUM_BAG_SLOTS) or self.atBank then
+			self:OnBagUpdate(bagID)
+		end
 	end
 end
 

@@ -35,7 +35,9 @@
 
 
 local Bagnon = LibStub('AceAddon-3.0'):GetAddon('Bagnon')
+local Bucket = LibStub("AceBucket-3.0")
 local BagEvents = Bagnon.Ears:New()
+Bucket:Embed(BagEvents)
 Bagnon.BagEvents = BagEvents 
 
 
@@ -216,7 +218,7 @@ end
 --[[ Events ]]--
 
 function BagEvents:PLAYER_LOGIN(...)
-	self:RegisterEvent('BAG_UPDATE')
+	self:RegisterBucketEvent('BAG_UPDATE', 0.2, 'BAG_UPDATE')
 	self:RegisterEvent('BAG_UPDATE_COOLDOWN')
 	self:RegisterEvent('PLAYERBANKSLOTS_CHANGED')
 	self:RegisterEvent('BANKFRAME_OPENED')
@@ -229,10 +231,12 @@ function BagEvents:PLAYER_LOGIN(...)
 	self:UpdateItems(BACKPACK_CONTAINER)
 end
 
-function BagEvents:BAG_UPDATE(event, bag)
+function BagEvents:BAG_UPDATE(bagIDs)
 	self:UpdateBagTypes()
 	self:UpdateBagSizes()
-	self:UpdateItems(bag)
+	for bagID in pairs(bagIDs) do
+		self:UpdateItems(bagID)
+	end
 end
 
 function BagEvents:PLAYERBANKSLOTS_CHANGED(...)

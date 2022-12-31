@@ -7,5 +7,6 @@
 ## Version: 1.1.2
 ## SavedVariables: BagnonForeverDB
 ## LoadOnDemand: 0
+## RequiredDeps: Bagnon
 db.lua
 ui.xml
