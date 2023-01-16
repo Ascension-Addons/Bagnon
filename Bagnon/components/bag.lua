@@ -5,9 +5,11 @@
 
 local Bagnon = LibStub('AceAddon-3.0'):GetAddon('Bagnon')
 local L = LibStub('AceLocale-3.0'):GetLocale('Bagnon')
-local Bucket = LibStub('AceBucket-3.0')
 local Bag = Bagnon.Classy:New('CheckButton')
-Bucket:Embed(Bag)
+
+LibStub('AceEvent-3.0'):Embed(Bag)
+LibStub('AceTimer-3.0'):Embed(Bag)
+LibStub('AceBucket-3.0'):Embed(Bag)
 Bagnon.Bag = Bag
 
 --constants
