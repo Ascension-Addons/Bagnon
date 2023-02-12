@@ -343,29 +343,29 @@ function ItemSlot:SetLocked(locked)
 	SetItemButtonDesaturated(self, locked)
 end
 
-function ItemSlot:UpdateREName()
+function ItemSlot:UpdateMEName()
 	local itemLink = self:GetItem()
 	if itemLink then
-		self.reName = strlower(GetREData(GetREInSlot(self:GetBag(), self:GetID()))['spellName'])
+		self.MEName = strlower(GetREData(GetREInSlot(self:GetBag(), self:GetID()))['spellName'])
 		return
 	end
 end
 
 function ItemSlot:UpdateLocked()
 	if self:IsLocked() then
-		self.reName = ""
+		self.MEName = ""
 	else
-		self:UpdateREName()
+		self:UpdateMEName()
 	end
 	self:SetLocked(self:IsLocked())
 end
 
---returns true if the slot is locked, and false otherwise
+-- returns true if the slot is locked, and false otherwise
 function ItemSlot:IsLocked()
 	return Bagnon.ItemSlotInfo:IsLocked(self:GetPlayer(), self:GetBag(), self:GetID())
 end
 
---colors the item border based on the quality of the item.  hides it for common/poor items
+-- colors the item border based on the quality of the item. hides it for common/poor items
 if hasBlizzQuestHighlight() then
 	function ItemSlot:SetBorderQuality(quality)
 		local border = self.border
@@ -469,7 +469,7 @@ function ItemSlot:UpdateSearch()
 	if search and search ~= '' then
 		local itemLink = self:GetItem()
 		shouldFade = not (itemLink and (ItemSearch:Find(itemLink, search)))
-		if self.reName and string.find(self.reName, string.lower(search)) then
+		if self.MEName and string.find(self.MEName, string.lower(search)) then
 			shouldFade = false
 		end
 	end
@@ -572,8 +572,8 @@ function ItemSlot:GetHighlightAlpha()
 	return Bagnon.Settings:GetHighlightOpacity()
 end
 
---returns true if the item is a quest item or not
---in 3.3, includes a second return to determine if the item is a quest starter for a quest the player lacks
+-- returns true if the item is a quest item or not
+-- in 3.3, includes a second return to determine if the item is a quest starter for a quest the player lacks
 local QUEST_ITEM_SEARCH = string.format('t:%s|%s', select(12, GetAuctionItemClasses()), 'quest')
 
 if hasBlizzQuestHighlight() then
@@ -700,11 +700,11 @@ function ItemSlot:CreateDummyItemSlot()
 	return slot
 end
 
---dummy bag, a hack to enforce the internal blizzard rule that item:GetParent():GetID() == bagID
+-- dummy bag, a hack to enforce the internal blizzard rule that item:GetParent():GetID() == bagID
 function ItemSlot:GetDummyBag(parent, bag)
 	local dummyBags = parent.dummyBags
 
-	--metatable magic to create a new frame on demand
+	-- metatable magic to create a new frame on demand
 	if not dummyBags then
 		dummyBags = setmetatable({}, {
 						__index = function(t, k)
