@@ -2,7 +2,6 @@
 	item.lua
 		A guild item slot button
 --]]
-
 local Bagnon = LibStub('AceAddon-3.0'):GetAddon('Bagnon')
 local ItemSlot = Bagnon.Classy:New('Button')
 ItemSlot:Hide()
@@ -14,9 +13,8 @@ local ItemSearch = LibStub('LibItemSearch-1.0')
 --[[
 	The item widget
 --]]
-
-
---[[ ItemSlot Constructor ]]--
+--[[ ItemSlot Constructor ]]
+--
 
 function ItemSlot:New(tab, slot, frameID, parent)
 	local item = self:Restore() or self:Create()
@@ -92,7 +90,8 @@ end
 
 
 
---[[ ItemSlot Destructor ]]--
+--[[ ItemSlot Destructor ]]
+--
 
 function ItemSlot:Free()
 	self:Hide()
@@ -104,8 +103,8 @@ function ItemSlot:Free()
 	ItemSlot.unused[self] = true
 end
 
-
---[[ Events ]]--
+--[[ Events ]]
+--
 
 
 function ItemSlot:GUILDBANK_ITEM_LOCK_CHANGED(event, tab, slot)
@@ -139,8 +138,8 @@ function ItemSlot:HandleEvent(msg, ...)
 	end
 end
 
-
---[[ Frame Events ]]--
+--[[ Frame Events ]]
+--
 
 function ItemSlot:OnClick(button)
 	if HandleModifiedItemClick(self:GetItem()) then
@@ -202,8 +201,8 @@ function ItemSlot:OnLeave()
 	ResetCursor()
 end
 
-
---[[ Update Methods ]]--
+--[[ Update Methods ]]
+--
 
 -- Update the texture, lock status, and other information about an item
 function ItemSlot:Update()
@@ -217,7 +216,7 @@ function ItemSlot:Update()
 
 	self:UpdateBorder()
 	self:UpdateSearch()
---	self:UpdateBagSearch()
+	--	self:UpdateBagSearch()
 
 	if GameTooltip:IsOwned(self) then
 		self:UpdateTooltip()
@@ -261,7 +260,20 @@ function ItemSlot:SetLocked(locked)
 	SetItemButtonDesaturated(self, locked, 0.5, 0.5, 0.5)
 end
 
+function ItemSlot:UpdateMEName()
+	local itemLink = self:GetItem()
+	if itemLink then
+		self.MEName = strlower(GetREData(GetGuildBankItemMysticEnchant(self:GetSlot()))['spellName'])
+		return
+	end
+end
+
 function ItemSlot:UpdateLocked()
+	if self:IsLocked() then
+		self.MEName = ""
+	else
+		self:UpdateMEName()
+	end
 	self:SetLocked(self:IsLocked())
 end
 
@@ -337,14 +349,17 @@ function ItemSlot:AnchorTooltip()
 	end
 end
 
---search
+-- search
 function ItemSlot:UpdateSearch()
 	local shouldFade = false
 	local search = self:GetItemSearch()
 
 	if search and search ~= '' then
 		local itemLink = self:GetItem()
-		shouldFade = not(itemLink and ItemSearch:Find(itemLink, search))
+		shouldFade = not (itemLink and ItemSearch:Find(itemLink, search))
+		if self.MEName and string.find(self.MEName, string.lower(search)) then
+			shouldFade = false
+		end
 	end
 
 	if shouldFade then
@@ -355,7 +370,7 @@ function ItemSlot:UpdateSearch()
 		self:SetAlpha(1)
 		self:UpdateLocked()
 		self:UpdateBorder()
---		self:UpdateSlotColor()
+		--		self:UpdateSlotColor()
 	end
 end
 
@@ -363,9 +378,8 @@ function ItemSlot:GetItemSearch()
 	return Bagnon.Settings:GetTextSearch()
 end
 
-
-
---[[ Accessor Methods ]]--
+--[[ Accessor Methods ]]
+--
 
 function ItemSlot:SetFrameID(frameID)
 	if self:GetFrameID() ~= frameID then
@@ -411,8 +425,8 @@ function ItemSlot:GetItemSlotInfo()
 	return texture, itemCount, locked, itemLink
 end
 
-
---[[ Item Type Highlighting ]]--
+--[[ Item Type Highlighting ]]
+--
 
 function ItemSlot:HighlightingItemsByQuality()
 	return Bagnon.Settings:HighlightingItemsByQuality()
@@ -436,8 +450,8 @@ function ItemSlot:IsQuestItem()
 	return ItemSearch:Find(itemLink, QUEST_ITEM_SEARCH)
 end
 
-
---[[ Empty Slot Visibility ]]--
+--[[ Empty Slot Visibility ]]
+--
 
 function ItemSlot:ShowingEmptyItemSlotTexture()
 	return Bagnon.Settings:ShowingEmptyItemSlotTextures()

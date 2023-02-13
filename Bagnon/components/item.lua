@@ -2,7 +2,6 @@
 	item.lua
 		An item slot button
 --]]
-
 local Bagnon = LibStub('AceAddon-3.0'):GetAddon('Bagnon')
 local ItemSlot = Bagnon.Classy:New('Button')
 ItemSlot:Hide()
@@ -10,16 +9,15 @@ Bagnon.ItemSlot = ItemSlot
 
 local ItemSearch = LibStub('LibItemSearch-1.0')
 
-local function hasBlizzQuestHighlight() 
-	return GetContainerItemQuestInfo and true or false 
+local function hasBlizzQuestHighlight()
+	return GetContainerItemQuestInfo and true or false
 end
 
 --[[
 	The item widget
 --]]
-
-
---[[ ItemSlot Constructor ]]--
+--[[ ItemSlot Constructor ]]
+--
 
 function ItemSlot:New(bag, slot, frameID, parent)
 	local item = self:Restore() or self:Create()
@@ -83,7 +81,7 @@ function ItemSlot:GetBlizzardItemSlot(id)
 	end
 
 	local bag = math.ceil(id / MAX_CONTAINER_ITEMS)
-	local slot = (id-1) % MAX_CONTAINER_ITEMS + 1
+	local slot = (id - 1) % MAX_CONTAINER_ITEMS + 1
 	local item = _G[format('ContainerFrame%dItem%d', bag, slot)]
 
 	if item then
@@ -118,7 +116,8 @@ end
 
 
 
---[[ ItemSlot Destructor ]]--
+--[[ ItemSlot Destructor ]]
+--
 
 function ItemSlot:Free()
 	self:Hide()
@@ -130,8 +129,8 @@ function ItemSlot:Free()
 	ItemSlot.unused[self] = true
 end
 
-
---[[ Events ]]--
+--[[ Events ]]
+--
 
 function ItemSlot:ITEM_SLOT_UPDATE(msg, bag, slot)
 	self:Update()
@@ -194,8 +193,8 @@ function ItemSlot:HandleEvent(msg, ...)
 	end
 end
 
-
---[[ Frame Events ]]--
+--[[ Frame Events ]]
+--
 
 function ItemSlot:OnShow()
 	self:Update()
@@ -246,8 +245,8 @@ function ItemSlot:OnLeave()
 	ResetCursor()
 end
 
-
---[[ Update Methods ]]--
+--[[ Update Methods ]]
+--
 
 
 -- Update the texture, lock status, and other information about an item
@@ -344,52 +343,29 @@ function ItemSlot:SetLocked(locked)
 	SetItemButtonDesaturated(self, locked)
 end
 
-
-local reTooltip = CreateFrame("GameTooltip", "BagNonItemListREInspectTooltip", UIParent, "GameTooltipTemplate")
--- TODO: Nihilianth: This change does not affect guild bank search. Also tooltips in guild bank are not colored properly
-function ItemSlot:UpdateREName()
+function ItemSlot:UpdateMEName()
 	local itemLink = self:GetItem()
-	if itemLink and reTooltip then 
-		
-        local tooltip = reTooltip
-        tooltip:ClearLines()
-		tooltip:SetOwner(self:GetParent(), "ANCHOR_NONE")
-		if self:GetBag() == -1 then
-			tooltip:SetInventoryItem("player", BankButtonIDToInvSlotID(self:GetID()))
-		else
-			tooltip:SetBagItem(self:GetBag(), self:GetID())
-		end
-		
-        for line = 1, tooltip:NumLines() do
-			local ttLine = _G[tooltip:GetName() .. "TextLeft" .. line]
-			local text = ttLine:GetText()
-			if text and string.find(text, "Equip:")  then
-				local descStart = text:find("( )(\-)( )")
-				if descStart then
-					self.reName = string.lower(text:sub(7, descStart - 1))
-					return
-				end
-			end
-		end
-		-- reTooltip:Hide()
-	end --else print("no item link") end
+	if itemLink then
+		self.MEName = strlower(GetREData(GetREInSlot(self:GetBag(), self:GetID()))['spellName'])
+		return
+	end
 end
 
 function ItemSlot:UpdateLocked()
-	if self:IsLocked() then 
-		self.reName = "" 
-	else 
-		self:UpdateREName()
+	if self:IsLocked() then
+		self.MEName = ""
+	else
+		self:UpdateMEName()
 	end
 	self:SetLocked(self:IsLocked())
 end
 
---returns true if the slot is locked, and false otherwise
+-- returns true if the slot is locked, and false otherwise
 function ItemSlot:IsLocked()
 	return Bagnon.ItemSlotInfo:IsLocked(self:GetPlayer(), self:GetBag(), self:GetID())
 end
 
---colors the item border based on the quality of the item.  hides it for common/poor items
+-- colors the item border based on the quality of the item. hides it for common/poor items
 if hasBlizzQuestHighlight() then
 	function ItemSlot:SetBorderQuality(quality)
 		local border = self.border
@@ -486,19 +462,16 @@ function ItemSlot:AnchorTooltip()
 end
 
 --search
-
-
 function ItemSlot:UpdateSearch()
 	local shouldFade = false
 	local search = self:GetItemSearch()
 
 	if search and search ~= '' then
 		local itemLink = self:GetItem()
-		shouldFade = not(itemLink and (ItemSearch:Find(itemLink, search)))
-		if self.reName and string.find(self.reName, string.lower(search)) then
+		shouldFade = not (itemLink and (ItemSearch:Find(itemLink, search)))
+		if self.MEName and string.find(self.MEName, string.lower(search)) then
 			shouldFade = false
 		end
-
 	end
 
 	if shouldFade then
@@ -531,9 +504,8 @@ function ItemSlot:GetBagSearch()
 	return self:GetSettings():GetBagSearch()
 end
 
-
-
---[[ Accessor Methods ]]--
+--[[ Accessor Methods ]]
+--
 
 function ItemSlot:SetFrameID(frameID)
 	if self:GetFrameID() ~= frameID then
@@ -580,12 +552,13 @@ function ItemSlot:AtBank()
 end
 
 function ItemSlot:GetItemSlotInfo()
-	local texture, count, locked, quality, readable, lootable, link = Bagnon.ItemSlotInfo:GetItemInfo(self:GetPlayer(), self:GetBag(), self:GetID())
+	local texture, count, locked, quality, readable, lootable, link = Bagnon.ItemSlotInfo:GetItemInfo(self:GetPlayer(),
+					self:GetBag(), self:GetID())
 	return texture, count, locked, quality, readable, lootable, link
 end
 
-
---[[ Item Type Highlighting ]]--
+--[[ Item Type Highlighting ]]
+--
 
 function ItemSlot:HighlightingItemsByQuality()
 	return Bagnon.Settings:HighlightingItemsByQuality()
@@ -599,8 +572,8 @@ function ItemSlot:GetHighlightAlpha()
 	return Bagnon.Settings:GetHighlightOpacity()
 end
 
---returns true if the item is a quest item or not
---in 3.3, includes a second return to determine if the item is a quest starter for a quest the player lacks
+-- returns true if the item is a quest item or not
+-- in 3.3, includes a second return to determine if the item is a quest starter for a quest the player lacks
 local QUEST_ITEM_SEARCH = string.format('t:%s|%s', select(12, GetAuctionItemClasses()), 'quest')
 
 if hasBlizzQuestHighlight() then
@@ -629,7 +602,8 @@ else
 end
 
 
---[[ Item Slot Coloring ]]--
+--[[ Item Slot Coloring ]]
+--
 
 function ItemSlot:IsAmmoBagSlot()
 	return Bagnon.BagSlotInfo:IsAmmoBag(self:GetPlayer(), self:GetBag())
@@ -667,15 +641,15 @@ function ItemSlot:ColoringBagSlots()
 	return Bagnon.Settings:ColoringBagSlots()
 end
 
-
---[[ Empty Slot Visibility ]]--
+--[[ Empty Slot Visibility ]]
+--
 
 function ItemSlot:ShowingEmptyItemSlotTexture()
 	return Bagnon.Settings:ShowingEmptyItemSlotTextures()
 end
 
-
---[[ Delicious Hacks ]]--
+--[[ Delicious Hacks ]]
+--
 
 -- dummy slot - A hack, used to provide a tooltip for cached items without tainting other item code
 function ItemSlot:GetDummyItemSlot()
@@ -726,21 +700,20 @@ function ItemSlot:CreateDummyItemSlot()
 	return slot
 end
 
-
---dummy bag, a hack to enforce the internal blizzard rule that item:GetParent():GetID() == bagID
+-- dummy bag, a hack to enforce the internal blizzard rule that item:GetParent():GetID() == bagID
 function ItemSlot:GetDummyBag(parent, bag)
 	local dummyBags = parent.dummyBags
 
-	--metatable magic to create a new frame on demand
+	-- metatable magic to create a new frame on demand
 	if not dummyBags then
 		dummyBags = setmetatable({}, {
-			__index = function(t, k)
-				local f = CreateFrame('Frame', nil, parent)
-				f:SetID(k)
-				t[k] = f
-				return f
-			end
-		})
+						__index = function(t, k)
+							local f = CreateFrame('Frame', nil, parent)
+							f:SetID(k)
+							t[k] = f
+							return f
+						end
+				})
 		parent.dummyBags = dummyBags
 	end
 
