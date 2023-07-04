@@ -1,4 +1,4 @@
-﻿--[[
+--[[
 	sortBtn.lua
 		imagine a button that sorts your inventory in Bagnon, crazy am I right?!1
 --]]
@@ -78,6 +78,9 @@ local function CompareItems(lItem, rItem)
 	elseif (lItem.id == nil) then
 		return false;
 	elseif (lItem.class ~= rItem.class) then
+		if lItem.class == "Weapon" or rItem.class == "Weapon" then
+			return lItem.class == "Weapon"
+		end
 		return (lItem.class < rItem.class);
 	elseif (lItem.subclass ~= rItem.subclass) then
 		return (lItem.subclass < rItem.subclass);
@@ -207,7 +210,28 @@ end
 --[[ Frame Events ]] --
 function SortBtn:OnClick()
 	local bags = {};
-	for i = 0, NUM_BAG_FRAMES, 1 do
+
+	if self.frameID == "inventory" then
+		for i = 0, NUM_BAG_FRAMES, 1 do
+			local bag = CreateBagFromID(i);
+			local type = select(2, GetContainerNumFreeSlots(i));
+			if type == nil then
+				type = "ALL"
+			else
+				type = tostring(type);
+			end
+			if bags[type] == nil then
+				bags[type] = bag;
+			else
+				for j = 1, #bag, 1 do
+					table.insert(bags[type], bag[j]);
+				end
+			end
+		end
+	end
+
+	if self.frameID == "bank" then
+		local i = -1
 		local bag = CreateBagFromID(i);
 		local type = select(2, GetContainerNumFreeSlots(i));
 		if type == nil then
@@ -222,7 +246,25 @@ function SortBtn:OnClick()
 				table.insert(bags[type], bag[j]);
 			end
 		end
+
+		for i = NUM_BAG_FRAMES+1, NUM_BAG_FRAMES + NUM_BANKBAGSLOTS, 1 do
+			local bag = CreateBagFromID(i);
+			local type = select(2, GetContainerNumFreeSlots(i));
+			if type == nil then
+				type = "ALL"
+			else
+				type = tostring(type);
+			end
+			if bags[type] == nil then
+				bags[type] = bag;
+			else
+				for j = 1, #bag, 1 do
+					table.insert(bags[type], bag[j]);
+				end
+			end
+		end
 	end
+
 
 	BeginSort();
 	for k, v in pairs(bags) do
