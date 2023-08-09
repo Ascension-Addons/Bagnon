@@ -260,20 +260,7 @@ function ItemSlot:SetLocked(locked)
 	SetItemButtonDesaturated(self, locked, 0.5, 0.5, 0.5)
 end
 
-function ItemSlot:UpdateMEName()
-	local itemLink = self:GetItem()
-	if itemLink then
-		self.MEName = strlower(GetREData(GetGuildBankItemMysticEnchant(self:GetSlot()))['spellName'])
-		return
-	end
-end
-
 function ItemSlot:UpdateLocked()
-	if self:IsLocked() then
-		self.MEName = ""
-	else
-		self:UpdateMEName()
-	end
 	self:SetLocked(self:IsLocked())
 end
 
@@ -357,9 +344,6 @@ function ItemSlot:UpdateSearch()
 	if search and search ~= '' then
 		local itemLink = self:GetItem()
 		shouldFade = not (itemLink and ItemSearch:Find(itemLink, search))
-		if self.MEName and string.find(self.MEName, string.lower(search)) then
-			shouldFade = false
-		end
 	end
 
 	if shouldFade then

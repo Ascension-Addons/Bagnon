@@ -294,38 +294,24 @@ end
 
 --item slot color
 function ItemSlot:UpdateSlotColor()
+	local normalTexture = self:GetNormalTexture() -- elvui nukes this function (in a bad way)
+	local r, g, b = 1, 1, 1
 	if (not self:GetItem()) and self:ColoringBagSlots() then
 		if self:IsKeyRingSlot() then
-			local r, g, b = self:GetKeyringSlotColor()
-			SetItemButtonTextureVertexColor(self, r, g, b)
-			self:GetNormalTexture():SetVertexColor(r, g, b)
-			return
-		end
-
-		if self:IsAmmoBagSlot() then
-			local r, g, b = self:GetAmmoSlotColor()
-			SetItemButtonTextureVertexColor(self, r, g, b)
-			self:GetNormalTexture():SetVertexColor(r, g, b)
-			return
-		end
-
-		if self:IsTradeBagSlot() then
-			local r, g, b = self:GetTradeSlotColor()
-			SetItemButtonTextureVertexColor(self, r, g, b)
-			self:GetNormalTexture():SetVertexColor(r, g, b)
-			return
-		end
-
-		if self:IsShardBagSlot() then
-			local r, g, b = self:GetShardSlotColor()
-			SetItemButtonTextureVertexColor(self, r, g, b)
-			self:GetNormalTexture():SetVertexColor(r, g, b)
-			return
+			r, g, b = self:GetKeyringSlotColor()
+		elseif self:IsAmmoBagSlot() then
+			r, g, b = self:GetAmmoSlotColor()
+		elseif self:IsTradeBagSlot() then
+			r, g, b = self:GetTradeSlotColor()
+		elseif self:IsShardBagSlot() then
+			r, g, b = self:GetShardSlotColor()
 		end
 	end
 
-	SetItemButtonTextureVertexColor(self, 1, 1, 1)
-	self:GetNormalTexture():SetVertexColor(1, 1, 1)
+	SetItemButtonTextureVertexColor(self, r, g, b)
+	if normalTexture then
+		normalTexture:SetVertexColor(r, g, b)
+	end
 end
 
 --item count
@@ -343,20 +329,7 @@ function ItemSlot:SetLocked(locked)
 	SetItemButtonDesaturated(self, locked)
 end
 
-function ItemSlot:UpdateMEName()
-	local itemLink = self:GetItem()
-	if itemLink then
-		self.MEName = strlower(GetREData(GetREInSlot(self:GetBag(), self:GetID()))['spellName'])
-		return
-	end
-end
-
 function ItemSlot:UpdateLocked()
-	if self:IsLocked() then
-		self.MEName = ""
-	else
-		self:UpdateMEName()
-	end
 	self:SetLocked(self:IsLocked())
 end
 
@@ -469,9 +442,6 @@ function ItemSlot:UpdateSearch()
 	if search and search ~= '' then
 		local itemLink = self:GetItem()
 		shouldFade = not (itemLink and (ItemSearch:Find(itemLink, search)))
-		if self.MEName and string.find(self.MEName, string.lower(search)) then
-			shouldFade = false
-		end
 	end
 
 	if shouldFade then
