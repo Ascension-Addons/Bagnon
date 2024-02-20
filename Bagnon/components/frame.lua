@@ -390,7 +390,7 @@ function Frame:SetFrameLayer(layer)
 	local strata, topLevel = nil, false
 
 	if layer == 'TOPLEVEL' then
-		strata = 'HIGH'
+		strata = 'DIALOG'
 		topLevel = true
 	elseif layer == 'MEDIUMLOW' then
 		strata = 'LOW'
